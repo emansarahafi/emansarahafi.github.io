@@ -130,28 +130,37 @@ const animateSkillTags = () => {
     });
 };
 
-// Trigger skill tag animation on scroll
-let skillsAnimated = false;
-window.addEventListener('scroll', () => {
-    if (!skillsAnimated) {
-        const skillsSection = document.getElementById('skills');
-        const skillsPosition = skillsSection.getBoundingClientRect().top;
-        const screenPosition = window.innerHeight;
-        
-        if (skillsPosition < screenPosition) {
-            // Set initial state for tags
-            const skillTags = document.querySelectorAll('.skill-tag');
-            skillTags.forEach(tag => {
-                tag.style.opacity = '0';
-                tag.style.transform = 'translateY(20px)';
-                tag.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+// Skills animation with Intersection Observer
+const skillsObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            // Animate skill categories first
+            const categories = entry.target.querySelectorAll('.skill-category');
+            categories.forEach((category, catIndex) => {
+                setTimeout(() => {
+                    category.classList.add('visible');
+                    
+                    // Then animate skill tags within this category
+                    const skillTags = category.querySelectorAll('.skill-tag');
+                    skillTags.forEach((tag, tagIndex) => {
+                        setTimeout(() => {
+                            tag.classList.add('visible');
+                        }, tagIndex * 50); // Stagger tags by 50ms
+                    });
+                }, catIndex * 100); // Stagger categories by 100ms
             });
-            
-            animateSkillTags();
-            skillsAnimated = true;
         }
-    }
+    });
+}, {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
 });
+
+// Observe skills section
+const skillsSection = document.getElementById('skills');
+if (skillsSection) {
+    skillsObserver.observe(skillsSection);
+}
 
 // Intersection Observer for Fade-in Animations
 const observerOptions = {
@@ -168,8 +177,8 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, observerOptions);
 
-// Observe elements for animation
-const animateElements = document.querySelectorAll('.project-card, .timeline-item, .skill-category');
+// Observe elements for animation (excluding skill-category which has its own observer)
+const animateElements = document.querySelectorAll('.project-card, .timeline-item');
 animateElements.forEach(el => {
     el.style.opacity = '0';
     el.style.transform = 'translateY(30px)';
